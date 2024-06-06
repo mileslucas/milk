@@ -379,6 +379,7 @@ errno_t saveFITS_opt_trunc(
             }
 
             char tmpkwvalstr[81];
+            COREMOD_iofits_data.FITSIO_status = 0;
             switch(imgin.im->kw[kw].type)
             {
                 case 'L':
@@ -386,7 +387,6 @@ errno_t saveFITS_opt_trunc(
                                      imgin.im->kw[kw].name,
                                      imgin.im->kw[kw].value.numl,
                                      imgin.im->kw[kw].comment);
-                    COREMOD_iofits_data.FITSIO_status = 0;
                     fits_update_key(fptr,
                                     TLONG,
                                     imgin.im->kw[kw].name,
@@ -401,7 +401,6 @@ errno_t saveFITS_opt_trunc(
                                      imgin.im->kw[kw].name,
                                      imgin.im->kw[kw].value.numf,
                                      imgin.im->kw[kw].comment);
-                    COREMOD_iofits_data.FITSIO_status = 0;
                     fits_update_key(fptr,
                                     TDOUBLE,
                                     imgin.im->kw[kw].name,
@@ -417,7 +416,6 @@ errno_t saveFITS_opt_trunc(
                                      imgin.im->kw[kw].name,
                                      tmpkwvalstr,
                                      imgin.im->kw[kw].comment);
-                    COREMOD_iofits_data.FITSIO_status = 0;
                     // MIND THAT WE ADDED SINGLE QUOTES JUST ABOVE IN snprintf!!
                     if((strncmp("'#TRUE#'", tmpkwvalstr, 8) == 0) ||
                             (strncmp("'#FALSE#'", tmpkwvalstr, 9) == 0))
@@ -444,6 +442,23 @@ errno_t saveFITS_opt_trunc(
                     }
                     kwcnt++;
                     break;
+                case 'F':
+                    snprintf(tmpkwfmtstr, 21, "%%-8s= %s / %%s", kwarray[kwi].format)
+                    snprintf(tmpkwvalstr, 81, tmpkwfmtstr, 
+                                     kwarray[kwi].name,
+                                     kwarray[kwi].value.numf,
+                                     kwarray[kwi].comment);
+                    
+                    DEBUG_TRACEPOINT("writing keyword [F] %-8s= %s %20g / %s\n",
+                                     kwarray[kwi].name,
+                                     kwarray[kwi].format,
+                                     kwarray[kwi].value.numf,
+                                     kwarray[kwi].comment);
+                    
+                    fits_update_card(fptr,
+                                     kwarray[kwi].name,
+                                     tmpkwvalstr,
+                                     &COREMOD_iofits_data.FITSIO_status);
 
                 default:
                     break;
@@ -467,10 +482,11 @@ errno_t saveFITS_opt_trunc(
         for(int kwi = 0; kwi < kwarraysize; kwi++)
         {
             char tmpkwvalstr[81];
+            char tmpkwfmtstr[21];
+            COREMOD_iofits_data.FITSIO_status = 0;
             switch(kwarray[kwi].type)
             {
                 case 'L':
-                    COREMOD_iofits_data.FITSIO_status = 0;
                     fits_update_key(fptr,
                                     TLONG,
                                     kwarray[kwi].name,
@@ -480,7 +496,6 @@ errno_t saveFITS_opt_trunc(
                     break;
 
                 case 'D':
-                    COREMOD_iofits_data.FITSIO_status = 0;
                     DEBUG_TRACEPOINT("writing keyword [D] %-8s= %20g / %s\n",
                                      kwarray[kwi].name,
                                      kwarray[kwi].value.numf,
@@ -492,14 +507,29 @@ errno_t saveFITS_opt_trunc(
                                     kwarray[kwi].comment,
                                     &COREMOD_iofits_data.FITSIO_status);
                     break;
-
+                case 'F':
+                    snprintf(tmpkwfmtstr, 21, "%%-8s= %s / %%s", kwarray[kwi].format)
+                    snprintf(tmpkwvalstr, 81, tmpkwfmtstr, 
+                                     kwarray[kwi].name,
+                                     kwarray[kwi].value.numf,
+                                     kwarray[kwi].comment);
+                    
+                    DEBUG_TRACEPOINT("writing keyword [F] %-8s= %s %20g / %s\n",
+                                     kwarray[kwi].name,
+                                     kwarray[kwi].format,
+                                     kwarray[kwi].value.numf,
+                                     kwarray[kwi].comment);
+                    
+                    fits_update_card(fptr,
+                                     kwarray[kwi].name,
+                                     tmpkwvalstr,
+                                     &COREMOD_iofits_data.FITSIO_status);
                 case 'S':
                     snprintf(tmpkwvalstr, 81, "'%s'", kwarray[kwi].value.valstr);
                     DEBUG_TRACEPOINT("writing keyword [S] %-8s= %20s / %s\n",
                                      kwarray[kwi].name,
                                      tmpkwvalstr,
                                      kwarray[kwi].comment);
-                    COREMOD_iofits_data.FITSIO_status = 0;
                     fits_update_key(fptr,
                                     TSTRING,
                                     kwarray[kwi].name,
@@ -507,7 +537,6 @@ errno_t saveFITS_opt_trunc(
                                     kwarray[kwi].comment,
                                     &COREMOD_iofits_data.FITSIO_status);
                     break;
-
                 default:
                     break;
             }
